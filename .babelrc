@@ -1,9 +1,25 @@
 {
+  "env": {
+    "development": {
+      "compact": false
+    }
+  },
   "presets": [
-    ["env", {
-      "modules": false
-    }],
-    "stage-0",
+    [
+      "env",
+      {
+        "modules": false
+      }
+    ],
+    "stage-2",
     "react"
+  ],
+  "plugins": [
+    [
+      "transform-runtime",
+      {
+        "regenerator": true
+      }
+    ]
   ]
 }

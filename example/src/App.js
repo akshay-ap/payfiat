@@ -1,12 +1,12 @@
 import React, { Component } from 'react'
 
-import ExampleComponent from 'payfiat'
+import { PayFiat } from 'payfiat'
 
 export default class App extends Component {
-  render () {
+  render() {
     return (
       <div>
-        <ExampleComponent text='Modern React component module' />
+        <PayFiat oceanAmount={105} currency="EUR" />
       </div>
     )
   }

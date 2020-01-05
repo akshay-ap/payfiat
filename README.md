@@ -15,12 +15,12 @@ npm install --save payfiat
 ```jsx
 import React, { Component } from 'react'
 
-import MyComponent from 'payfiat'
+import {PayFiat} from 'payfiat'
 
 class Example extends Component {
   render () {
     return (
-      <MyComponent />
+      <PayFiat oceanAmount={50} currency="EUR"/>
     )
   }
 }
