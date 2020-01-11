@@ -1,5 +1,17 @@
 let baseUrl = process.env.REACT_APP_PAYFIAT_SERVER_URL;
 
+const checkServerAvailability = options => {
+  return window
+    .fetch(`${baseUrl}/health`)
+    .then(res => {
+      if (res.status == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+}
+
 const createPaymentIntent = options => {
   return window
     .fetch(`${baseUrl}/fiat/create-payment-intent`, {
@@ -23,32 +35,6 @@ const createPaymentIntent = options => {
         throw new Error("PaymentIntent API Error");
       } else {
         return data.client_secret;
-      }
-    });
-};
-
-const getProductDetails = options => {
-  return window
-    .fetch(`${baseUrl}/fiat/product-details`, {
-      method: "GET",
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      }
-    })
-    .then(res => {
-      if (res.status === 200) {
-        return res.json();
-      } else {
-        return null;
-      }
-    })
-    .then(data => {
-      if (!data || data.error) {
-        console.log("API error:", { data });
-        throw Error("API Error");
-      } else {
-        return data;
       }
     });
 };
@@ -116,6 +102,23 @@ const getCurrentOceanPrice = async options => {
   }
 }
 
+const checkTxStatus = async options => {
+  let { txHash } = options;
+  let res = await window.fetch(
+    `${baseUrl}/crypto/checkTxStatus?txHash=${txHash}`,
+    {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
+    }
+  );
+
+  let data = await res.json();
+  return data;
+}
+
 const transferOCEAN = async options => {
   let { amount, receiverAddress } = options;
   let res = await window.fetch(
@@ -138,12 +141,13 @@ const transferOCEAN = async options => {
   }
 }
 const api = {
+  checkServerAvailability,
   createPaymentIntent,
-  getPublicStripeKey: getPublicStripeKey,
-  getProductDetails: getProductDetails,
+  getPublicStripeKey,
   getTokenBalance,
   getCurrentOceanPrice,
-  transferOCEAN
+  transferOCEAN,
+  checkTxStatus
 };
 
 export default api;

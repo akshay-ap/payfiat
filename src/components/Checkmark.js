@@ -11,7 +11,6 @@ class Checkmark extends Component {
     }
 
     static getDerivedStateFromProps(nextProps, prevState) {
-        console.log(`Derived props - ${JSON.stringify(nextProps)} , ${JSON.stringify(prevState)}`)
         if (nextProps.loadComplete !== prevState.loadComplete && nextProps.loadComplete) {
             return { loadComplete: nextProps.loadComplete, loaderClassname: 'circle-loader load-complete' };
         }

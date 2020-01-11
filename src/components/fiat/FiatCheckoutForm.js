@@ -28,7 +28,9 @@ class FiatCheckoutForm extends Component {
       tokenTransferError: null,
       transferSuccessful: null,
       transferFailed: null,
-      tooltipOpen: false
+      tooltipOpen: false,
+      txHash: null,
+      clearInterval: null
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -36,6 +38,7 @@ class FiatCheckoutForm extends Component {
 
   async componentDidMount() {
 
+    console.log(`Receiver Account - ${this.props.receiverAccount}`)
     if (!web3.currentProvider) {
       this.setState({ web3Connected: false }); //Unlock your metamask
       return;
@@ -43,13 +46,22 @@ class FiatCheckoutForm extends Component {
       this.setState({ web3Connected: true });
 
       let _accounts = await web3.eth.getAccounts();
-      console.log(_accounts[0]);
+      console.log(`Injected Web3 account - ${_accounts[0]}`);
 
-      this.setState({
-        amount: this.props.totalAmount,
-        currency: this.props.currency,
-        currentAccount: _accounts[0]
-      });
+      if (!this.props.receiverAccount) {
+        this.setState({
+          amount: this.props.totalAmount,
+          currency: this.props.currency,
+          currentAccount: _accounts[0]
+        });
+      } else {
+        this.setState({
+          amount: this.props.totalAmount,
+          currency: this.props.currency,
+          currentAccount: this.props.receiverAccount
+        });
+      }
+
 
     }
   }
@@ -71,8 +83,10 @@ class FiatCheckoutForm extends Component {
       else {
         console.log(`TxHash - ${resp.txHash}`)
         //start checking for transaction receipt
-        setInterval(function () { this.checkForTokenTransferState(resp.txHash) }.bind(this), 5000);
+        let stopCheckingTxState = setInterval(function () { this.checkForTokenTransferState(resp.txHash) }.bind(this), 5000);
         this.setState({
+          clearInterval: stopCheckingTxState,
+          txHash: resp.txHash,
           hasTransferInitiated: true,
           tokenTransferError: null
         })
@@ -81,25 +95,40 @@ class FiatCheckoutForm extends Component {
   }
 
   async checkForTokenTransferState(txHash) {
+    console.log("checking for tx finality...")
     try {
-      let receipt = await web3.eth.getTransactionReceipt(txHash);
-      if (receipt && receipt.status) {
+      console.log(`TxHash - ${txHash}`)
+      let resp = await api.checkTxStatus({ txHash: txHash })
+      if (!resp.status) {
+        throw Error(resp.message);
+      }
+
+      /*await web3.eth.getTransactionReceipt(txHash);*/
+      if (resp.status == "success") {
         this.setState({
+          clearInterval: null,
           transferSuccessful: true,
           transferFailed: false,
           transferProcessComplete: true
         })
-      } else if (receipt && receipt.status == false) {
+        //clear interval
+        clearInterval(this.state.clearInterval);
+      } else if (resp.status == "fail") {
         this.setState({
+          clearInterval: null,
           transferFailed: true,
           transferSuccessful: false,
           transferProcessComplete: true
         })
+        //clear interval
+        clearInterval(this.state.clearInterval);
       }
+
     } catch (err) {
       console.error(`Transfer receipt error - ${err.message}`)
       this.setState({
-        tokenTransferError: err.message
+        tokenTransferError: err.message,
+        transferFailed: true
       })
     }
   }
@@ -139,7 +168,7 @@ class FiatCheckoutForm extends Component {
                 error: "",
                 metadata: payload.paymentIntent
               });
-              console.log("[PaymentIntent]", payload.paymentIntent);
+
             }
           });
       })
@@ -190,6 +219,7 @@ class FiatCheckoutForm extends Component {
         <Checkmark loadComplete={this.state.transferProcessComplete} />
         <p>Transferring {this.props.oceanAmount} OCEAN to</p>
         <h6>{this.state.currentAccount}</h6>
+        {this.state.txHash ? (<h6 style={{ fontSize: 10 }}>Tx Hash - {this.state.txHash}</h6>) : ''}
       </div>
     );
   }

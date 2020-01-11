@@ -20,11 +20,16 @@ import {PayFiat} from 'payfiat'
 class Example extends Component {
   render () {
     return (
-      <PayFiat oceanAmount={50} currency="EUR"/>
+      <PayFiat 
+      oceanAmount={50} 
+      currency="EUR" 
+      receiverAccount="0xB4Ba48998CF672d43b8216D43EE8f16143c9055C"
+      />
     )
   }
 }
 ```
+> **Note** - if `receiverAccount` prop is not provided, then ethereum account address is exported from injected web3 provided like Metamask.
 
 ## License
 

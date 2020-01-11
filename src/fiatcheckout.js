@@ -15,7 +15,6 @@ class FiatCheckout extends Component {
 
   componentDidMount() {
     api.getPublicStripeKey().then(apiKey => {
-      console.log(apiKey);
       this.setState({
         apiKey: apiKey
       });
@@ -34,6 +33,7 @@ class FiatCheckout extends Component {
                 currency={this.props.currency}
                 closeModal={this.props.closeModal.bind(this)}
                 oceanAmount={this.props.oceanAmount}
+                receiverAccount={this.props.receiverAccount}
               />
             </Elements>
           </StripeProvider>

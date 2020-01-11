@@ -22,7 +22,6 @@ class PayButtons extends Component {
 
   componentDidMount() {
     api.getCurrentOceanPrice({ contractAddress: "0x985dd3d42de1e256d09e1c10f112bccb8015ad41", currency: this.props.currency }).then(price => {
-      console.log(price);
       this.setState({
         payable: price
       });
@@ -67,6 +66,7 @@ class PayButtons extends Component {
           <FiatCheckout
             totalAmount={(this.state.payable * this.props.oceanAmount).toFixed(2)}
             currency={this.props.currency}
+            receiverAccount={this.props.receiverAccount}
             closeModal={(shouldClose => this.setState({ modal: shouldClose }))}
             oceanAmount={this.props.oceanAmount}
             closeModal={this.showClosebutton.bind(this)}
@@ -78,7 +78,6 @@ class PayButtons extends Component {
   }
 
   render() {
-    console.log(`Modal - ${this.state.modal}`);
     return (
       <div>
         {this.state.modal ? (
