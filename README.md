@@ -4,6 +4,9 @@
 
 [![NPM](https://img.shields.io/npm/v/payfiat.svg)](https://www.npmjs.com/package/payfiat) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
+## Prerequisite
+[PayFiat Server](https://github.com/akshay-ap/payfiat-server) is up and running.
+ 
 ## Install
 
 ```bash
