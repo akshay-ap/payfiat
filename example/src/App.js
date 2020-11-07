@@ -6,7 +6,7 @@ export default class App extends Component {
   render() {
     return (
       <div>
-        <PayFiat oceanAmount={200} currency="EUR" receiverAccount="0x5f410f5eE92D8BBE4df673ceef9D90B414B04f67" />
+        <PayFiat oceanAmount={200} currency="EUR" receiverAccount="0x58EdDe7Fb5d4d97A6DA34E54305EEC20A459fd93" />
       </div>
     )
   }

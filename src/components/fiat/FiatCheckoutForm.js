@@ -141,7 +141,18 @@ class FiatCheckoutForm extends Component {
       .createPaymentIntent({
         payment_method_types: ["card"],
         amount: Math.round(this.state.amount * 100),
-        currency: this.state.currency
+        currency: this.state.currency,
+        description: "test payment",
+        shipping: {
+          name: 'Jenny Rosen',
+          address: {
+            line1: '510 Townsend St',
+            postal_code: '98140',
+            city: 'San Francisco',
+            state: 'CA',
+            country: 'US',
+          },
+        },
       })
       .then(clientSecret => {
         this.setState({

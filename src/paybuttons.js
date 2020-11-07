@@ -21,7 +21,7 @@ class PayButtons extends Component {
   }
 
   componentDidMount() {
-    api.getCurrentOceanPrice({ contractAddress: "0x985dd3d42de1e256d09e1c10f112bccb8015ad41", currency: this.props.currency }).then(price => {
+    api.getCurrentOceanPrice({ contractAddress: "0x967da4048cd07ab37855c090aaf366e4ce1b9f48", currency: this.props.currency }).then(price => {
       this.setState({
         payable: price
       });

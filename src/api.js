@@ -1,4 +1,6 @@
-let baseUrl = process.env.REACT_APP_PAYFIAT_SERVER_URL;
+const baseUrl = process.env.REACT_APP_PAYFIAT_SERVER_URL;
+
+console.log(baseUrl);
 
 const checkServerAvailability = options => {
   return window
