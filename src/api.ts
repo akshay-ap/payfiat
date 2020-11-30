@@ -1,4 +1,5 @@
 import { NewPaymentIntent } from "./models/NewPayementIntent";
+import axios from "axios";
 
 const baseUrl = process.env.REACT_APP_PAYFIAT_SERVER_URL;
 
@@ -12,6 +13,16 @@ const checkServerAvailability = () => {
       return false;
     }
   });
+};
+
+const getEnv = async () => {
+  try {
+    const response = await axios.get(`${baseUrl}/env`);
+    return response.data.env;
+  } catch (error) {
+    console.error(error);
+  }
+  return "unknown";
 };
 
 const createPaymentIntent = (newPaymentIntent: NewPaymentIntent) => {
@@ -127,7 +138,25 @@ const checkTxStatus = async (options: { txHash: string }) => {
   return data;
 };
 
-const getTxHash = (paymentId: string) => {};
+const getTxHash = (
+  paymentId: string
+): Promise<{ transactionHash: string; txState: string }> => {
+  return new Promise((resolve, reject) => {
+    axios
+      .post(`${baseUrl}/fiat/tx-hash`, { paymentId })
+      .then((res) => {
+        console.log(res);
+        resolve({
+          transactionHash: res.data.transactionHash || "unknown",
+          txState: res.data.txState || "unknown",
+        });
+        console.log(res.data);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};
 
 const api = {
   checkServerAvailability,
@@ -137,6 +166,7 @@ const api = {
   getCurrentTokenPrice,
   checkTxStatus,
   getTxHash,
+  getEnv,
 };
 
 export default api;

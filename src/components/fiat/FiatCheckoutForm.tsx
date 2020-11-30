@@ -1,5 +1,6 @@
 import {
   Button,
+  CircularProgress,
   createStyles,
   makeStyles,
   Paper,
@@ -13,7 +14,12 @@ import React, { useEffect, useState } from "react";
 import api from "../../api";
 import { usePayFiat } from "../../context/PayFiatContext";
 import { NewPaymentIntent } from "../../models/NewPayementIntent";
+import { PaymentState } from "../../models/PaymentState";
+import sleep from "../../utils/sleep";
+import ErrorFiatPaymentFailed from "./ErrorFiatPaymentFailed";
 import ErrorMessage from "./ErrorMessage";
+import TokenTransferIntitated from "./TokenTransferIntitated";
+import TokenTransferSuccessful from "./TokenTransferSuccessful";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -40,7 +46,9 @@ const useStyles = makeStyles((theme: Theme) =>
     checkoutForm: {
       [theme.breakpoints.up("sm")]: {
         width: "500px",
+        height: "355px",
       },
+      textAlign: "center",
     },
   })
 );
@@ -74,22 +82,10 @@ const FiatCheckoutForm = () => {
     tokenAmount,
     priceInformation,
     recieverAccount,
+    paymentState,
+    setPaymentState,
+    setTransactionHash,
   } = usePayFiat();
-
-  enum PaymentState {
-    FiatPaymentInitiating = 0,
-    FiatPymentInitiated = 1,
-    FiatPaymentCompleted = 2,
-    FiatPaymentFialed = 3,
-    TokenTransferIntiating = 4,
-    TokenTransferInitiated = 5,
-    TokenTransferFailed = 6,
-    TokenTransferCompleted = 7,
-  }
-
-  const [paymentState, setPaymentState] = useState<PaymentState>(
-    PaymentState.FiatPaymentInitiating
-  );
 
   const [succeeded, setSucceeded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -105,13 +101,32 @@ const FiatCheckoutForm = () => {
   });
 
   useEffect(() => {
-    if (paymentState === PaymentState.FiatPaymentCompleted) {
-    }
-  }, [PaymentState.FiatPaymentCompleted, paymentState]);
+    (async () => {
+      if (paymentId && paymentState === PaymentState.FiatPaymentCompleted) {
+        try {
+          let count = 0;
+          let result = { txState: "unknown", transactionHash: "unknown" };
+          while (result.txState !== "started") {
+            await sleep(5000);
+            count++;
+            result = await api.getTxHash(paymentId);
+            if (result.txState === "started") {
+              console.log(`Txstate found updated in [${count}] attempt`);
+            }
+          }
+
+          setTransactionHash(result.transactionHash);
+          setPaymentState(PaymentState.TokenTransferInitiated);
+        } catch (error) {
+          setError(error.message);
+        }
+      }
+    })();
+  }, [paymentState, paymentId, setPaymentState, setTransactionHash]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setPaymentState(PaymentState.FiatPymentInitiated);
+    setPaymentState(PaymentState.FiatPaymentInitiated);
 
     if (!priceInformation.price) {
       setError("Token price not defined");
@@ -163,9 +178,9 @@ const FiatCheckoutForm = () => {
       });
 
       if (payload.error) {
-        setError(`Payment failed ${payload.error.message}`);
+        setError(`${payload.error.message}`);
         setProcessing(false);
-        setPaymentState(PaymentState.FiatPaymentFialed);
+        setPaymentState(PaymentState.FiatPaymentFailed);
       } else {
         setError(null);
         setProcessing(false);
@@ -175,7 +190,7 @@ const FiatCheckoutForm = () => {
     } catch (error) {
       setError(error.message);
       setProcessing(false);
-      setPaymentState(PaymentState.FiatPaymentFialed);
+      setPaymentState(PaymentState.FiatPaymentFailed);
     }
   };
 
@@ -264,13 +279,34 @@ const FiatCheckoutForm = () => {
     );
   };
 
+  const getContent = () => {
+    if (paymentState === PaymentState.FiatPaymentFailed) {
+      return <ErrorFiatPaymentFailed error={error} />;
+    } else if (
+      paymentState === PaymentState.FiatPaymentInitiating ||
+      paymentState === PaymentState.FiatPaymentInitiated
+    ) {
+      return <>{getForm()}</>;
+    } else if (paymentState === PaymentState.FiatPaymentCompleted) {
+      return (
+        <>
+          <Typography>
+            Payment completed. Waiting for Token transaction confirmation.
+          </Typography>
+          <CircularProgress />
+        </>
+      );
+    } else if (paymentState === PaymentState.TokenTransferInitiated) {
+      return <TokenTransferIntitated />;
+    } else if (paymentState === PaymentState.TokenTransferCompleted) {
+      return <TokenTransferSuccessful />;
+    }
+    return <>Invalid state</>;
+  };
+
   return (
     <div className={classes.checkoutForm} id="form-div">
-      {paymentState <= PaymentState.FiatPaymentFialed ? (
-        <>{getForm()}</>
-      ) : (
-        <> {succeeded && paymentId}?Checking token transfer status:</>
-      )}
+      {getContent()}
     </div>
   );
 };

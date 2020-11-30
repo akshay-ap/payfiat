@@ -6,8 +6,13 @@ import FiatCheckout from "./FiatCheckout";
 import { usePayFiat } from "../context/PayFiatContext";
 
 const PayButtons = () => {
-  const [isModalOpen, setModalOpen] = useState<boolean>(false);
-  const { currency, priceInformation, setPriceInformation } = usePayFiat();
+  const {
+    currency,
+    priceInformation,
+    setPriceInformation,
+    isModalOpen,
+    setModalOpen,
+  } = usePayFiat();
 
   useEffect(() => {
     (async () => {
